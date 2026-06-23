@@ -43,6 +43,7 @@ from common.metrics import (
     format_performance_summary,
     compute_equity_curve,
     compute_drawdown,
+    lag_weights_to_next_month,
 )
 from haa.momentum import (
     DEFAULT_HORIZONS,
@@ -260,18 +261,6 @@ def build_topk_weights_from_signals(
             weights.loc[date, asset] += equal_weight
 
     return weights
-
-
-def lag_weights_to_next_month(
-    signal_weights: pd.DataFrame,
-) -> pd.DataFrame:
-    """
-    Lag signal weights by one month to avoid look-ahead bias.
-    """
-    weights_for_returns = signal_weights.shift(1)
-    weights_for_returns = weights_for_returns.dropna(how="all")
-
-    return weights_for_returns
 
 
 def build_topk_sector_rotation_weights(

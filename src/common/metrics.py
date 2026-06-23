@@ -24,7 +24,7 @@ Run from the project root with:
 
 from pathlib import Path
 import sys
-from typing import Optional
+from typing import Iterable, Optional
 
 import numpy as np
 import pandas as pd
@@ -579,6 +579,78 @@ def slice_period(
         (series_or_frame.index >= start_date)
         & (series_or_frame.index <= end_date)
     ]
+
+
+# ============================================================
+# Portfolio weight utilities
+# ============================================================
+
+def build_one_asset_weights(
+    target_assets: pd.Series,
+    universe: Iterable[str],
+) -> pd.DataFrame:
+    """
+    Convert selected target assets into one-hot portfolio weights.
+
+    Parameters
+    ----------
+    target_assets:
+        Series containing the selected target asset at each signal date.
+    universe:
+        Assets that can appear in the portfolio.
+
+    Returns
+    -------
+    pd.DataFrame
+        Weight matrix indexed by signal date.
+    """
+    universe = list(universe)
+
+    if not universe:
+        raise ValueError("Universe cannot be empty.")
+
+    weights = pd.DataFrame(
+        data=0.0,
+        index=target_assets.index,
+        columns=universe,
+    )
+
+    for date, asset in target_assets.items():
+        if asset not in weights.columns:
+            raise ValueError(f"Selected asset {asset} is not in the universe.")
+        weights.loc[date, asset] = 1.0
+
+    return weights
+
+
+def lag_weights_to_next_month(
+    signal_weights: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Lag signal weights by one month to avoid look-ahead bias.
+
+    Parameters
+    ----------
+    signal_weights:
+        Weights decided at the end of each month.
+
+    Returns
+    -------
+    pd.DataFrame
+        Weights held during the following month.
+
+    Important
+    ---------
+    If weights are computed using information available at month-end t,
+    they can only be implemented for the return from t to t+1.
+
+    Therefore, for the return indexed by date t, we use the weights decided
+    at date t-1.
+    """
+    weights_for_returns = signal_weights.shift(1)
+    weights_for_returns = weights_for_returns.dropna(how="all")
+
+    return weights_for_returns
 
 
 # ============================================================

@@ -54,6 +54,8 @@ from common.metrics import (
     format_performance_summary,
     compute_equity_curve,
     compute_drawdown,
+    build_one_asset_weights,
+    lag_weights_to_next_month,
 )
 from haa.momentum import (
     DEFAULT_HORIZONS,
@@ -218,66 +220,6 @@ def build_sector_rotation_signals(
     signals = signals.dropna()
 
     return signals
-
-
-def build_one_asset_weights(
-    target_assets: pd.Series,
-    universe: Iterable[str],
-) -> pd.DataFrame:
-    """
-    Convert selected target assets into one-hot portfolio weights.
-
-    Parameters
-    ----------
-    target_assets:
-        Series containing the selected target asset at each date.
-    universe:
-        Tradable universe.
-
-    Returns
-    -------
-    pd.DataFrame
-        Weight matrix indexed by signal date.
-    """
-    universe = list(universe)
-
-    if not universe:
-        raise ValueError("Universe cannot be empty.")
-
-    weights = pd.DataFrame(
-        data=0.0,
-        index=target_assets.index,
-        columns=universe,
-    )
-
-    for date, asset in target_assets.items():
-        if asset not in weights.columns:
-            raise ValueError(f"Selected asset {asset} is not in the universe.")
-        weights.loc[date, asset] = 1.0
-
-    return weights
-
-
-def lag_weights_to_next_month(
-    signal_weights: pd.DataFrame,
-) -> pd.DataFrame:
-    """
-    Lag signal weights by one month to avoid look-ahead bias.
-
-    Parameters
-    ----------
-    signal_weights:
-        Weights decided at the end of each month.
-
-    Returns
-    -------
-    pd.DataFrame
-        Weights held during the following month.
-    """
-    weights_for_returns = signal_weights.shift(1)
-    weights_for_returns = weights_for_returns.dropna(how="all")
-
-    return weights_for_returns
 
 
 def build_sector_rotation_weights(
