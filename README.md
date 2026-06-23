@@ -156,6 +156,35 @@ The defensive sector extension performs particularly well out of sample. `Sector
 
 However, its in-sample performance is weaker than its out-of-sample performance. This suggests that the strategy should not be interpreted as a universally dominant allocation rule. Rather, it appears to be a promising sector-momentum extension whose performance is sensitive to the market environment.
 
+## Sharpe Ratio over SHY
+
+The main performance tables report a standard Sharpe ratio using a zero risk-free rate. To address this limitation, the project also reports a complementary Sharpe ratio computed in excess of `SHY`, the defensive asset used in the strategy universe.
+
+The metric is defined as:
+
+$$
+\text{Sharpe over SHY}
+======================
+
+\frac{\mathbb{E}[r_t - r^{SHY}_t]}
+{\sigma(r_t - r^{SHY}_t)}
+\sqrt{12}.
+$$
+
+`SHY` is not a perfect risk-free asset because it carries short-duration bond risk. However, it is a practical cash-like benchmark within the strategy universe.
+
+### Sharpe over SHY Results
+
+| Strategy             | Full Sample | In-Sample | Out-of-Sample |
+| -------------------- | ----------: | --------: | ------------: |
+| HAA Market-Cap Net   |        0.70 |      0.55 |          0.88 |
+| Sector Top-1 Net     |        0.56 |      0.62 |          0.49 |
+| Sector Top-2 Net     |        0.65 |      0.52 |          0.80 |
+| Sector Top-2 SHY Net |        0.69 |      0.47 |          0.98 |
+| VTI Buy and Hold     |        0.60 |      0.39 |          0.83 |
+| SPY Buy and Hold     |        0.62 |      0.38 |          0.88 |
+
+The full-sample ranking remains close to the standard Sharpe ratio results: `HAA Market-Cap Net` and `Sector Top-2 SHY Net` are the two strongest strategies. Out of sample, `Sector Top-2 SHY Net` has the highest Sharpe over SHY, confirming that its performance does not rely only on assuming a zero risk-free rate.
 
 ## 5. Interpretation
 
