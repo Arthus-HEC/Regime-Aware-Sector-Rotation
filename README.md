@@ -40,7 +40,7 @@ $$
 M_t = \frac{1}{4}\left(R_{1m,t} + R_{3m,t} + R_{6m,t} + R_{12m,t}\right),
 $$
 
-where (R_{h,t}) is the trailing total return over (h) months.
+where $(R_{h,t})$ is the trailing total return over $(h)$ months.
 
 The signal is computed at month-end and applied to the following month to avoid look-ahead bias.
 
