@@ -132,6 +132,31 @@ Transaction costs: 5 basis points.
 
 ---
 
+## Out-of-Sample Validation
+
+To reduce the risk of relying only on full-sample performance, the strategies are also evaluated on a simple in-sample / out-of-sample split:
+
+* In-sample period: January 2005 to December 2015;
+* Out-of-sample period: January 2016 to December 2025.
+
+This split is used as a diagnostic robustness check rather than a fully independent model-selection protocol.
+
+### Out-of-Sample Results
+
+| Strategy             |   CAGR | Volatility | Sharpe | Max Drawdown |
+| -------------------- | -----: | ---------: | -----: | -----------: |
+| HAA Market-Cap Net   | 12.73% |     12.33% |   1.04 |      -19.45% |
+| Sector Top-1 Net     |  9.01% |     16.76% |   0.60 |      -22.83% |
+| Sector Top-2 Net     | 13.91% |     15.43% |   0.92 |      -19.95% |
+| Sector Top-2 SHY Net | 15.66% |     13.83% |   1.13 |      -19.95% |
+| VTI Buy and Hold     | 14.25% |     15.59% |   0.94 |      -24.82% |
+| SPY Buy and Hold     | 14.72% |     15.08% |   0.99 |      -23.93% |
+
+The defensive sector extension performs particularly well out of sample. `Sector Top-2 SHY Net` achieves the highest CAGR and Sharpe ratio over 2016–2025, while maintaining a lower maximum drawdown than the equity benchmarks.
+
+However, its in-sample performance is weaker than its out-of-sample performance. This suggests that the strategy should not be interpreted as a universally dominant allocation rule. Rather, it appears to be a promising sector-momentum extension whose performance is sensitive to the market environment.
+
+
 ## 5. Interpretation
 
 The HAA market-cap replication delivers the strongest defensive profile. It has the highest Sharpe ratio among the baseline strategies and the lowest maximum drawdown.
