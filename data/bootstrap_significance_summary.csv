@@ -1,0 +1,26 @@
+target_strategy,benchmark,metric,observed_difference,ci_2_5,ci_97_5,probability_positive,probability_negative,probability_favorable,favorable_direction,p_two_sided_zero,interpretation
+Sector Top-2 SHY Net,SPY Buy and Hold,diff_cagr,0.01473564033641983,-0.032671885445454685,0.06346787274599774,0.7146,0.2854,0.7146,higher,0.5708,ci_includes_zero
+Sector Top-2 SHY Net,SPY Buy and Hold,diff_annualized_return,0.013201797727026093,-0.029187373308228418,0.05725919002361652,0.7146,0.2854,0.7146,higher,0.5708,ci_includes_zero
+Sector Top-2 SHY Net,SPY Buy and Hold,diff_annualized_volatility,-0.0001968719175685918,-0.021171105853123928,0.018815686099489762,0.5143,0.4857,0.4857,lower,0.9714,ci_includes_zero
+Sector Top-2 SHY Net,SPY Buy and Hold,diff_sharpe_ratio,0.09028100583097431,-0.2538901916672913,0.41920800941382313,0.6872,0.3128,0.6872,higher,0.6256,ci_includes_zero
+Sector Top-2 SHY Net,SPY Buy and Hold,mean_monthly_excess_return,0.0011001498105855066,-0.002432281109019035,0.004771599168634711,0.7146,0.2854,0.7146,higher,0.5708,ci_includes_zero
+Sector Top-2 SHY Net,VTI Buy and Hold,diff_cagr,0.014829556746003503,-0.03212071537366853,0.06546923292851203,0.7158,0.2842,0.7158,higher,0.5684,ci_includes_zero
+Sector Top-2 SHY Net,VTI Buy and Hold,diff_annualized_return,0.01250910258975825,-0.02895127488786291,0.05857925019649795,0.7079,0.2921,0.7079,higher,0.5842,ci_includes_zero
+Sector Top-2 SHY Net,VTI Buy and Hold,diff_annualized_volatility,-0.005241486829976383,-0.025948451240544238,0.013828840025015878,0.323,0.677,0.677,lower,0.646,ci_includes_zero
+Sector Top-2 SHY Net,VTI Buy and Hold,diff_sharpe_ratio,0.11074881606662557,-0.22544973251539405,0.4363933541505172,0.7331,0.2669,0.7331,higher,0.5338,ci_includes_zero
+Sector Top-2 SHY Net,VTI Buy and Hold,mean_monthly_excess_return,0.0010424252158131875,-0.002412606240655243,0.0048816041830414955,0.7079,0.2921,0.7079,higher,0.5842,ci_includes_zero
+Sector Top-2 SHY Net,HAA Market-Cap Net,diff_cagr,0.010478463946056227,-0.02725087545420733,0.04736986303617748,0.7102,0.2898,0.7102,higher,0.5796,ci_includes_zero
+Sector Top-2 SHY Net,HAA Market-Cap Net,diff_annualized_return,0.011912071409275526,-0.0220721723974975,0.04517925723927499,0.7573,0.2427,0.7573,higher,0.4854,ci_includes_zero
+Sector Top-2 SHY Net,HAA Market-Cap Net,diff_annualized_volatility,0.01723758129440081,0.007426664934323777,0.027323411786151466,0.9998,0.0002,0.0002,lower,0.0004,unfavorable_difference_ci_excludes_zero
+Sector Top-2 SHY Net,HAA Market-Cap Net,diff_sharpe_ratio,-0.020823975475558143,-0.2613444164823378,0.22614260813599915,0.4433,0.5567,0.4433,higher,0.8866,ci_includes_zero
+Sector Top-2 SHY Net,HAA Market-Cap Net,mean_monthly_excess_return,0.0009926726174396274,-0.0018393476997914605,0.003764938103272913,0.7573,0.2427,0.7573,higher,0.4854,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-2 Net,diff_cagr,0.001585188221419731,-0.023378848400674845,0.026097967249739878,0.5454,0.4546,0.5454,higher,0.9092,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-2 Net,diff_annualized_return,-0.00042607160977065073,-0.022250454271832098,0.021460275808053268,0.4808,0.5192,0.4808,higher,0.9616,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-2 Net,diff_annualized_volatility,-0.011825679228976316,-0.020590587566977472,-0.005075928342698732,0.0,1.0,1.0,lower,0.0,lower_volatility_ci_excludes_zero
+Sector Top-2 SHY Net,Sector Top-2 Net,diff_sharpe_ratio,0.06018736137887892,-0.09170683775264805,0.22010878490909794,0.7743,0.2257,0.7743,higher,0.4514,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-2 Net,mean_monthly_excess_return,-3.550596748088976e-05,-0.0018542045226526745,0.0017883563173377718,0.4808,0.5192,0.4808,higher,0.9616,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-1 Net,diff_cagr,0.008678880311761006,-0.03831979275650762,0.05484160180786428,0.6423,0.3577,0.6423,higher,0.7154,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-1 Net,diff_annualized_return,0.0024707925203956427,-0.039542060657741226,0.0445074308505686,0.5531,0.4469,0.5531,higher,0.8938,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-1 Net,diff_annualized_volatility,-0.03272868781009736,-0.049206042365757756,-0.017571700966888773,0.0,1.0,1.0,lower,0.0,lower_volatility_ci_excludes_zero
+Sector Top-2 SHY Net,Sector Top-1 Net,diff_sharpe_ratio,0.16750485415375194,-0.09060026638529774,0.47511349705534217,0.8911,0.1089,0.8911,higher,0.2178,ci_includes_zero
+Sector Top-2 SHY Net,Sector Top-1 Net,mean_monthly_excess_return,0.00020589937669963633,-0.003295171721478432,0.0037089525708807187,0.5531,0.4469,0.5531,higher,0.8938,ci_includes_zero
