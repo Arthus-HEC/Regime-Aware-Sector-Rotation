@@ -287,9 +287,6 @@ regime-aware-sector-rotation/
 ├── requirements.txt
 ├── data/
 ├── figures/
-├── notebooks/
-│   ├── 01_haa_replication.ipynb
-│   └── 02_sector_rotation_extension.ipynb
 └── src/
     ├── common/
     │   ├── data.py

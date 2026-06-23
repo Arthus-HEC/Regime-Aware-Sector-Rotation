@@ -189,24 +189,23 @@ def build_top2_shy_weights_from_signals(
 
     equal_weight = 1.0 / top_k
 
-    for date, row in signals.iterrows():
-        if row["risk_on"] == 1:
-            selected_assets = [row[col] for col in offensive_columns]
+    invalid_off = set(signals[offensive_columns].to_numpy().flatten()) - set(universe)
+    if invalid_off:
+        raise ValueError(f"Offensive assets not in universe: {sorted(invalid_off)}")
 
-            for asset in selected_assets:
-                if asset not in weights.columns:
-                    raise ValueError(f"Selected asset {asset} is not in the universe.")
-                weights.loc[date, asset] += equal_weight
+    invalid_def = set(signals["defensive_asset"].unique()) - set(universe)
+    if invalid_def:
+        raise ValueError(f"Defensive assets not in universe: {sorted(invalid_def)}")
 
-        else:
-            defensive_asset = row["defensive_asset"]
+    risk_on_mask = (signals["risk_on"] == 1).astype(float)
+    risk_off_mask = 1.0 - risk_on_mask
 
-            if defensive_asset not in weights.columns:
-                raise ValueError(
-                    f"Defensive asset {defensive_asset} is not in the universe."
-                )
+    for col in offensive_columns:
+        dummies = pd.get_dummies(signals[col]).reindex(columns=universe, fill_value=0)
+        weights += dummies.mul(risk_on_mask * equal_weight, axis=0)
 
-            weights.loc[date, defensive_asset] = 1.0
+    dummies_def = pd.get_dummies(signals["defensive_asset"]).reindex(columns=universe, fill_value=0)
+    weights += dummies_def.mul(risk_off_mask, axis=0)
 
     return weights
 

@@ -23,6 +23,7 @@ from pathlib import Path
 import sys
 from typing import Iterable
 
+import numpy as np
 import pandas as pd
 
 
@@ -131,14 +132,12 @@ def select_top_k_assets(
     if missing_assets:
         raise ValueError(f"Missing assets in momentum matrix: {missing_assets}")
 
-    selected_rows = []
-
-    for date, row in momentum[assets].iterrows():
-        ranked_assets = row.sort_values(ascending=False).index.tolist()
-        selected_rows.append(ranked_assets[:top_k])
+    arr = momentum[assets].to_numpy()
+    col_names = np.array(assets)
+    top_k_indices = np.argsort(-arr, axis=1)[:, :top_k]
 
     selected = pd.DataFrame(
-        selected_rows,
+        col_names[top_k_indices],
         index=momentum.index,
         columns=[f"rank_{i + 1}" for i in range(top_k)],
     )
@@ -249,16 +248,21 @@ def build_topk_weights_from_signals(
 
     equal_weight = 1.0 / top_k
 
-    for date, row in signals.iterrows():
-        if row["risk_on"] == 1:
-            selected_assets = [row[col] for col in offensive_columns]
-        else:
-            selected_assets = [row[col] for col in defensive_columns]
+    all_assets = signals[offensive_columns + defensive_columns].to_numpy().flatten()
+    invalid = set(all_assets) - set(universe)
+    if invalid:
+        raise ValueError(f"Selected assets not in universe: {sorted(invalid)}")
 
-        for asset in selected_assets:
-            if asset not in weights.columns:
-                raise ValueError(f"Selected asset {asset} is not in the universe.")
-            weights.loc[date, asset] += equal_weight
+    risk_on_mask = (signals["risk_on"] == 1).astype(float)
+    risk_off_mask = 1.0 - risk_on_mask
+
+    for col in offensive_columns:
+        dummies = pd.get_dummies(signals[col]).reindex(columns=universe, fill_value=0)
+        weights += dummies.mul(risk_on_mask * equal_weight, axis=0)
+
+    for col in defensive_columns:
+        dummies = pd.get_dummies(signals[col]).reindex(columns=universe, fill_value=0)
+        weights += dummies.mul(risk_off_mask * equal_weight, axis=0)
 
     return weights
 
