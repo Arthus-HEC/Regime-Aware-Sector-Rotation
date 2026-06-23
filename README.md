@@ -32,7 +32,7 @@ More specifically:
 
 ## 2. Strategy Logic
 
-## 2.1 Momentum Signal
+### 2.1 Momentum Signal
 
 The core signal is a 13612 momentum score:
 
@@ -164,7 +164,6 @@ The metric is defined as:
 
 $$
 \text{Sharpe over SHY}
-======================
 
 \frac{\mathbb{E}[r_t - r^{SHY}_t]}
 {\sigma(r_t - r^{SHY}_t)}
