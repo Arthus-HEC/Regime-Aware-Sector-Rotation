@@ -52,15 +52,15 @@ A canary asset is used as a regime proxy.
 
 If the canary momentum is positive, the strategy is in a risk-on regime:
 
-[
+$$
 M_t(\text{canary}) > 0.
-]
+$$
 
 If the canary momentum is non-positive, the strategy is in a risk-off regime:
 
-[
+$$
 M_t(\text{canary}) \leq 0.
-]
+$$
 
 The baseline canary is `TIP`, following the HAA-style framework.
 
@@ -337,17 +337,17 @@ Signals are computed at the end of each month and applied to the following month
 
 Transaction costs are applied using one-way portfolio turnover:
 
-[
+$$
 \text{turnover}*t = \frac{1}{2} \sum_i |w*{t,i} - w_{t-1,i}|.
-]
+$$
 
 Net returns are computed as:
 
-[
+$$
 r^{net}_t = r^{gross}_t - c \times \text{turnover}_t,
-]
+$$
 
-where (c) is the transaction cost rate.
+where $(c)$ is the transaction cost rate.
 
 ---
 
