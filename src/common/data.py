@@ -123,7 +123,6 @@ def download_adjusted_prices(
 
     return prices
 
-
 def validate_price_matrix(prices: pd.DataFrame) -> None:
     """
     Validate a price matrix.
@@ -132,6 +131,12 @@ def validate_price_matrix(prices: pd.DataFrame) -> None:
     ----------
     prices:
         DataFrame indexed by date with one column per ticker.
+
+    Notes
+    -----
+    This validation is intentionally strict. A single fully missing ticker
+    should make the data download fail, because otherwise downstream backtests
+    may silently reuse incomplete price data.
     """
     if prices.empty:
         raise ValueError("Price matrix is empty.")
@@ -142,9 +147,21 @@ def validate_price_matrix(prices: pd.DataFrame) -> None:
     if prices.isna().all(axis=None):
         raise ValueError("Price matrix contains only missing values.")
 
-    if (prices <= 0).any(axis=None):
-        raise ValueError("Price matrix contains non-positive prices.")
+    fully_missing_columns = prices.columns[prices.isna().all()].tolist()
+    if fully_missing_columns:
+        raise ValueError(
+            "The following tickers contain only missing values: "
+            f"{fully_missing_columns}. "
+            "The download likely failed for these tickers."
+        )
 
+    non_positive = (prices <= 0).any(axis=0)
+    non_positive_columns = non_positive[non_positive].index.tolist()
+    if non_positive_columns:
+        raise ValueError(
+            "The following tickers contain non-positive prices: "
+            f"{non_positive_columns}"
+        )
 
 def to_monthly_prices(daily_prices: pd.DataFrame) -> pd.DataFrame:
     """

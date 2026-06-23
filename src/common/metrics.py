@@ -67,7 +67,7 @@ def compute_simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
     if prices.empty:
         raise ValueError("Price matrix is empty.")
 
-    returns = prices.pct_change()
+    returns = prices.pct_change(fill_method=None)
     returns = returns.dropna(how="all")
 
     return returns
