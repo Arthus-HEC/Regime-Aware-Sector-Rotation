@@ -65,7 +65,7 @@ from haa.momentum import (
 # ============================================================
 
 BACKTEST_START_DATE = "2005-01-31"
-BACKTEST_END_DATE = None
+BACKTEST_END_DATE = "2025-12-31"
 
 TRANSACTION_COST_BPS = 5.0
 PERIODS_PER_YEAR = 12
