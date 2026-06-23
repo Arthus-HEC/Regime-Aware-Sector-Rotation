@@ -32,13 +32,13 @@ More specifically:
 
 ## 2. Strategy Logic
 
-### 2.1 Momentum Signal
+## 2.1 Momentum Signal
 
 The core signal is a 13612 momentum score:
 
-[
-M_t = \frac{1}{4}(R_{1m,t} + R_{3m,t} + R_{6m,t} + R_{12m,t}),
-]
+$$
+M_t = \frac{1}{4}\left(R_{1m,t} + R_{3m,t} + R_{6m,t} + R_{12m,t}\right),
+$$
 
 where (R_{h,t}) is the trailing total return over (h) months.
 
