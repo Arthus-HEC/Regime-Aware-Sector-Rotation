@@ -1,0 +1,66 @@
+diff --git a/.gitignore b/.gitignore
+index e69de29..c4afd20 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -0,0 +1,20 @@
++# Python
++__pycache__/
++*.py[cod]
++*.pyo
++
++# Distribution / packaging
++*.egg-info/
++dist/
++build/
++
++# Environments
++.env
++.venv
++venv/
++
++# Jupyter
++.ipynb_checkpoints/
++
++# OS
++.DS_Store
+diff --git a/src/haa/factor_exposure_analysis.py b/src/haa/factor_exposure_analysis.py
+index 5dc9327..e037403 100644
+--- a/src/haa/factor_exposure_analysis.py
++++ b/src/haa/factor_exposure_analysis.py
+@@ -31,6 +31,8 @@ SRC_DIR = PROJECT_ROOT / "src"
+ if str(SRC_DIR) not in sys.path:
+     sys.path.append(str(SRC_DIR))
+ 
++from common.metrics import compute_simple_returns
++
+ 
+ # ============================================================
+ # Configuration
+@@ -149,27 +151,6 @@ def load_strategy_returns(
+ # Factor construction
+ # ============================================================
+ 
+-def compute_simple_returns(
+-    prices: pd.DataFrame,
+-) -> pd.DataFrame:
+-    """
+-    Compute monthly simple returns.
+-
+-    Parameters
+-    ----------
+-    prices:
+-        Monthly price matrix.
+-
+-    Returns
+-    -------
+-    pd.DataFrame
+-        Monthly simple returns.
+-    """
+-    returns = prices.pct_change(fill_method=None)
+-    returns = returns.dropna(how="all")
+-    return returns
+-
+-
+ def build_etf_proxy_factors(
+     prices: pd.DataFrame,
+ ) -> pd.DataFrame:
