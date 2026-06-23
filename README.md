@@ -16,6 +16,14 @@ The full-sample results are favorable: `Sector Top-2 SHY Net` achieves the highe
 
 The strongest empirical result is therefore more nuanced: the defensive sector rotation rule improves the risk profile of sector momentum strategies and keeps a positive ETF proxy factor alpha, but it should not be interpreted as proof of a uniquely optimal trading rule.
 
+## Relation to the Reference Paper
+
+This repository starts from Peter B. Richman’s paper, *A Regime-Aware Market Capitalization Rotation Strategy Using Hybrid Asset Allocation Momentum*. The paper applies a Hybrid Asset Allocation-style momentum framework to U.S. market-capitalization rotation, using `SPY`, `MDY`, and `IJR` as offensive assets, `TIP` as the canary asset, `SHY` as the defensive allocation, and `VTI` as the benchmark.
+
+The first objective of this repository is to reproduce the core logic of that market-cap rotation framework in Python. The second objective is to extend the same regime-aware architecture to U.S. sector ETFs. Instead of rotating only between large-, mid-, and small-cap equity segments, the extension tests whether sector-level momentum can improve the risk-return profile of the strategy.
+
+The contribution of this repository is therefore not the invention of the HAA framework itself. The contribution is the empirical extension from market-cap rotation to sector rotation, together with additional robustness diagnostics: walk-forward model selection, paired block bootstrap inference, canary sensitivity analysis, and ETF proxy factor regressions.
+
 ---
 
 ## 1. Research Question
