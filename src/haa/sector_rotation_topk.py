@@ -1,33 +1,22 @@
 """
-sector_rotation.py
+sector_rotation_topk.py
 
-Sector rotation extension of the HAA-style regime-aware strategy.
+Diversified sector rotation extension of the HAA-style strategy.
 
-The replicated paper rotates between market-cap ETFs:
-    SPY, MDY, IJR
+Instead of allocating 100% to the single best sector, this version allocates
+equally across the top-k assets:
 
-This extension rotates between sector ETFs.
+- in risk-on regimes:
+      top-k offensive sector ETFs
 
-The logic is:
+- in risk-off regimes:
+      top-k defensive assets
 
-1. Compute 13612 momentum scores:
-       M_t = (R_1m + R_3m + R_6m + R_12m) / 4
-
-2. Use TIP as the canary asset:
-       if M_t(TIP) > 0 -> risk-on
-       if M_t(TIP) <= 0 -> risk-off
-
-3. In risk-on regimes:
-       allocate 100% to the strongest offensive sector ETF.
-
-4. In risk-off regimes:
-       allocate 100% to the strongest defensive asset among defensive sectors and SHY.
-
-5. Signals are computed at month-end and implemented for the following month.
+Signals are computed at month-end and implemented for the following month.
 
 Run from the project root with:
 
-    python src/haa/sector_rotation.py
+    python src/haa/sector_rotation_topk.py
 """
 
 from pathlib import Path
@@ -59,7 +48,6 @@ from haa.momentum import (
     DEFAULT_HORIZONS,
     compute_multi_horizon_momentum,
     compute_absolute_momentum_signal,
-    select_top_momentum_asset,
 )
 
 
@@ -89,6 +77,8 @@ SECTOR_BENCHMARKS = [
     "SPY",
 ]
 
+TOP_K = 2
+
 BACKTEST_START_DATE = "2005-01-31"
 BACKTEST_END_DATE = "2025-12-31"
 
@@ -96,64 +86,78 @@ TRANSACTION_COST_BPS = 5.0
 PERIODS_PER_YEAR = 12
 
 OUTPUT_DIR = Path("data")
-RETURNS_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_returns.csv"
-WEIGHTS_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_weights.csv"
-SIGNALS_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_signals.csv"
-SUMMARY_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_summary.csv"
+RETURNS_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_top2_returns.csv"
+WEIGHTS_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_top2_weights.csv"
+SIGNALS_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_top2_signals.csv"
+SUMMARY_OUTPUT_PATH = OUTPUT_DIR / "sector_rotation_top2_summary.csv"
 
 
 # ============================================================
 # Signal construction
 # ============================================================
 
-def build_target_assets(
-    risk_on: pd.Series,
-    selected_offensive_asset: pd.Series,
-    selected_defensive_asset: pd.Series,
-) -> pd.Series:
+def select_top_k_assets(
+    momentum: pd.DataFrame,
+    assets: Iterable[str],
+    top_k: int,
+) -> pd.DataFrame:
     """
-    Build the target asset selected at each signal date.
+    Select the top-k assets by momentum at each date.
 
     Parameters
     ----------
-    risk_on:
-        Binary risk-on signal.
-    selected_offensive_asset:
-        Best offensive sector ETF at each date.
-    selected_defensive_asset:
-        Best defensive asset at each date.
+    momentum:
+        Momentum score matrix.
+    assets:
+        Candidate assets.
+    top_k:
+        Number of assets to select.
 
     Returns
     -------
-    pd.Series
-        Target asset at each signal date.
+    pd.DataFrame
+        DataFrame with columns rank_1, rank_2, ..., rank_k.
     """
-    common_index = (
-        risk_on.index
-        .intersection(selected_offensive_asset.index)
-        .intersection(selected_defensive_asset.index)
+    assets = list(assets)
+
+    if top_k <= 0:
+        raise ValueError("top_k must be strictly positive.")
+
+    if top_k > len(assets):
+        raise ValueError("top_k cannot exceed the number of candidate assets.")
+
+    missing_assets = [asset for asset in assets if asset not in momentum.columns]
+    if missing_assets:
+        raise ValueError(f"Missing assets in momentum matrix: {missing_assets}")
+
+    selected_rows = []
+
+    for date, row in momentum[assets].iterrows():
+        ranked_assets = row.sort_values(ascending=False).index.tolist()
+        selected_rows.append(ranked_assets[:top_k])
+
+    selected = pd.DataFrame(
+        selected_rows,
+        index=momentum.index,
+        columns=[f"rank_{i + 1}" for i in range(top_k)],
     )
 
-    target_assets = selected_offensive_asset.loc[common_index].copy()
-    target_assets.loc[risk_on.loc[common_index] == 0] = (
-        selected_defensive_asset.loc[common_index]
-    )
-
-    target_assets.name = "target_asset"
-
-    return target_assets
+    return selected
 
 
-def build_sector_rotation_signals(
+def build_topk_sector_rotation_signals(
     prices: pd.DataFrame,
+    top_k: int = TOP_K,
 ) -> pd.DataFrame:
     """
-    Build sector rotation signals.
+    Build top-k sector rotation signals.
 
     Parameters
     ----------
     prices:
         Monthly price matrix.
+    top_k:
+        Number of assets selected in each regime.
 
     Returns
     -------
@@ -161,10 +165,8 @@ def build_sector_rotation_signals(
         Signal table containing:
         - canary momentum;
         - risk-on signal;
-        - selected offensive sector;
-        - selected defensive asset;
-        - target asset;
-        - target asset momentum.
+        - top-k offensive assets;
+        - top-k defensive assets.
     """
     momentum = compute_multi_horizon_momentum(
         prices=prices,
@@ -176,41 +178,26 @@ def build_sector_rotation_signals(
         canary_asset=SECTOR_CANARY_ASSET,
     )
 
-    selected_offensive_asset = select_top_momentum_asset(
+    top_offensive_assets = select_top_k_assets(
         momentum=momentum,
         assets=SECTOR_OFFENSIVE_ASSETS,
+        top_k=top_k,
     )
-    selected_offensive_asset.name = "selected_offensive_asset"
+    top_offensive_assets = top_offensive_assets.add_prefix("offensive_")
 
-    selected_defensive_asset = select_top_momentum_asset(
+    top_defensive_assets = select_top_k_assets(
         momentum=momentum,
         assets=SECTOR_DEFENSIVE_ASSETS,
+        top_k=top_k,
     )
-    selected_defensive_asset.name = "selected_defensive_asset"
-
-    target_asset = build_target_assets(
-        risk_on=risk_on,
-        selected_offensive_asset=selected_offensive_asset,
-        selected_defensive_asset=selected_defensive_asset,
-    )
-
-    target_asset_momentum = pd.Series(
-        data=[
-            momentum.loc[date, asset]
-            for date, asset in target_asset.items()
-        ],
-        index=target_asset.index,
-        name="target_asset_momentum",
-    )
+    top_defensive_assets = top_defensive_assets.add_prefix("defensive_")
 
     signals = pd.concat(
         [
             momentum[SECTOR_CANARY_ASSET].rename("canary_momentum"),
             risk_on,
-            selected_offensive_asset,
-            selected_defensive_asset,
-            target_asset,
-            target_asset_momentum,
+            top_offensive_assets,
+            top_defensive_assets,
         ],
         axis=1,
     )
@@ -220,40 +207,57 @@ def build_sector_rotation_signals(
     return signals
 
 
-def build_one_asset_weights(
-    target_assets: pd.Series,
+def build_topk_weights_from_signals(
+    signals: pd.DataFrame,
     universe: Iterable[str],
+    top_k: int = TOP_K,
 ) -> pd.DataFrame:
     """
-    Convert selected target assets into one-hot portfolio weights.
+    Convert top-k signals into equal-weighted portfolio weights.
 
     Parameters
     ----------
-    target_assets:
-        Series containing the selected target asset at each date.
+    signals:
+        Signal table.
     universe:
         Tradable universe.
+    top_k:
+        Number of assets held in each regime.
 
     Returns
     -------
     pd.DataFrame
-        Weight matrix indexed by signal date.
+        Signal-date portfolio weights.
     """
     universe = list(universe)
 
-    if not universe:
-        raise ValueError("Universe cannot be empty.")
-
     weights = pd.DataFrame(
         data=0.0,
-        index=target_assets.index,
+        index=signals.index,
         columns=universe,
     )
 
-    for date, asset in target_assets.items():
-        if asset not in weights.columns:
-            raise ValueError(f"Selected asset {asset} is not in the universe.")
-        weights.loc[date, asset] = 1.0
+    offensive_columns = [f"offensive_rank_{i + 1}" for i in range(top_k)]
+    defensive_columns = [f"defensive_rank_{i + 1}" for i in range(top_k)]
+
+    required_columns = ["risk_on"] + offensive_columns + defensive_columns
+    missing_columns = [col for col in required_columns if col not in signals.columns]
+
+    if missing_columns:
+        raise ValueError(f"Missing signal columns: {missing_columns}")
+
+    equal_weight = 1.0 / top_k
+
+    for date, row in signals.iterrows():
+        if row["risk_on"] == 1:
+            selected_assets = [row[col] for col in offensive_columns]
+        else:
+            selected_assets = [row[col] for col in defensive_columns]
+
+        for asset in selected_assets:
+            if asset not in weights.columns:
+                raise ValueError(f"Selected asset {asset} is not in the universe.")
+            weights.loc[date, asset] += equal_weight
 
     return weights
 
@@ -263,16 +267,6 @@ def lag_weights_to_next_month(
 ) -> pd.DataFrame:
     """
     Lag signal weights by one month to avoid look-ahead bias.
-
-    Parameters
-    ----------
-    signal_weights:
-        Weights decided at the end of each month.
-
-    Returns
-    -------
-    pd.DataFrame
-        Weights held during the following month.
     """
     weights_for_returns = signal_weights.shift(1)
     weights_for_returns = weights_for_returns.dropna(how="all")
@@ -280,31 +274,26 @@ def lag_weights_to_next_month(
     return weights_for_returns
 
 
-def build_sector_rotation_weights(
+def build_topk_sector_rotation_weights(
     prices: pd.DataFrame,
+    top_k: int = TOP_K,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Build sector rotation signals and lagged portfolio weights.
-
-    Parameters
-    ----------
-    prices:
-        Monthly price matrix.
-
-    Returns
-    -------
-    tuple[pd.DataFrame, pd.DataFrame]
-        Signals and lagged weights.
+    Build top-k sector rotation signals and lagged portfolio weights.
     """
-    signals = build_sector_rotation_signals(prices)
+    signals = build_topk_sector_rotation_signals(
+        prices=prices,
+        top_k=top_k,
+    )
 
     universe = sorted(
         set(SECTOR_OFFENSIVE_ASSETS + SECTOR_DEFENSIVE_ASSETS)
     )
 
-    signal_weights = build_one_asset_weights(
-        target_assets=signals["target_asset"],
+    signal_weights = build_topk_weights_from_signals(
+        signals=signals,
         universe=universe,
+        top_k=top_k,
     )
 
     weights = lag_weights_to_next_month(signal_weights)
@@ -316,30 +305,15 @@ def build_sector_rotation_weights(
 # Backtest
 # ============================================================
 
-def run_sector_rotation_backtest(
+def run_topk_sector_rotation_backtest(
     prices: pd.DataFrame,
+    top_k: int = TOP_K,
     transaction_cost_bps: float = TRANSACTION_COST_BPS,
     backtest_start_date: str = BACKTEST_START_DATE,
     backtest_end_date: str | None = BACKTEST_END_DATE,
 ) -> dict[str, object]:
     """
-    Run the sector rotation backtest.
-
-    Parameters
-    ----------
-    prices:
-        Monthly price matrix.
-    transaction_cost_bps:
-        Transaction cost in basis points.
-    backtest_start_date:
-        First date included in the performance comparison.
-    backtest_end_date:
-        Last date included in the performance comparison.
-
-    Returns
-    -------
-    dict
-        Backtest outputs.
+    Run the top-k sector rotation backtest.
     """
     required_assets = (
         [SECTOR_CANARY_ASSET]
@@ -354,13 +328,16 @@ def run_sector_rotation_backtest(
 
     returns = compute_simple_returns(prices)
 
-    signals, weights = build_sector_rotation_weights(prices)
+    signals, weights = build_topk_sector_rotation_weights(
+        prices=prices,
+        top_k=top_k,
+    )
 
     strategy_gross_returns = compute_portfolio_returns(
         returns=returns,
         weights=weights,
     )
-    strategy_gross_returns.name = "Sector Rotation Gross"
+    strategy_gross_returns.name = f"Sector Rotation Top-{top_k} Gross"
 
     turnover = compute_turnover(weights)
 
@@ -369,7 +346,7 @@ def run_sector_rotation_backtest(
         turnover=turnover,
         transaction_cost_bps=transaction_cost_bps,
     )
-    strategy_net_returns.name = "Sector Rotation Net"
+    strategy_net_returns.name = f"Sector Rotation Top-{top_k} Net"
 
     return_series = [
         strategy_gross_returns,
@@ -382,8 +359,7 @@ def run_sector_rotation_backtest(
         return_series.append(benchmark_returns)
 
     combined_returns = pd.concat(return_series, axis=1)
-
-    combined_turnover = turnover.rename("Sector Rotation Turnover")
+    combined_turnover = turnover.rename(f"Sector Rotation Top-{top_k} Turnover")
 
     if backtest_start_date is not None:
         combined_returns = combined_returns.loc[
@@ -411,7 +387,7 @@ def run_sector_rotation_backtest(
     performance_rows = {}
 
     for column in combined_returns.columns:
-        if column in ["Sector Rotation Gross", "Sector Rotation Net"]:
+        if column.startswith(f"Sector Rotation Top-{top_k}"):
             strategy_turnover = turnover_aligned
         else:
             strategy_turnover = None
@@ -453,9 +429,9 @@ def run_sector_rotation_backtest(
 # Saving and display
 # ============================================================
 
-def save_sector_rotation_outputs(results: dict[str, object]) -> None:
+def save_topk_sector_rotation_outputs(results: dict[str, object]) -> None:
     """
-    Save sector rotation outputs to CSV files.
+    Save top-k sector rotation outputs to CSV files.
     """
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -481,10 +457,10 @@ def save_sector_rotation_outputs(results: dict[str, object]) -> None:
 
 def main() -> None:
     """
-    Run the sector rotation extension.
+    Run the top-k sector rotation extension.
     """
     print("=" * 80)
-    print("HAA-style sector rotation extension")
+    print(f"HAA-style sector rotation extension: Top-{TOP_K}")
     print("=" * 80)
 
     prices = load_prices(MONTHLY_PRICES_PATH)
@@ -496,8 +472,9 @@ def main() -> None:
     print(f"Shape: {prices.shape}")
     print(f"Date range: {prices.index.min().date()} to {prices.index.max().date()}")
 
-    results = run_sector_rotation_backtest(
+    results = run_topk_sector_rotation_backtest(
         prices=prices,
+        top_k=TOP_K,
         transaction_cost_bps=TRANSACTION_COST_BPS,
         backtest_start_date=BACKTEST_START_DATE,
         backtest_end_date=BACKTEST_END_DATE,
@@ -542,19 +519,15 @@ def main() -> None:
     print(signals["risk_on"].value_counts(normalize=True).rename("frequency"))
 
     print()
-    print("Selected offensive sector distribution:")
-    print(signals["selected_offensive_asset"].value_counts(normalize=True).rename("frequency"))
+    print("Realized average weights:")
+    print(weights.mean().sort_values(ascending=False).rename("average_weight"))
 
     print()
-    print("Selected defensive asset distribution:")
-    print(signals["selected_defensive_asset"].value_counts(normalize=True).rename("frequency"))
+    print("Realized asset usage frequency:")
+    asset_usage = (weights > 0).mean().sort_values(ascending=False)
+    print(asset_usage.rename("frequency"))
 
-    print()
-    print("Realized target asset distribution:")
-    realized_asset = weights.idxmax(axis=1)
-    print(realized_asset.value_counts(normalize=True).rename("frequency"))
-
-    save_sector_rotation_outputs(results)
+    save_topk_sector_rotation_outputs(results)
 
     print()
     print("Saved outputs:")
