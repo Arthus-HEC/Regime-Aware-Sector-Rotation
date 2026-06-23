@@ -43,6 +43,7 @@ from common.metrics import (
     compute_turnover,
     compute_performance_summary,
     format_performance_summary,
+    slice_period,
 )
 
 
@@ -164,38 +165,6 @@ def build_turnover_map() -> dict[str, pd.Series | None]:
     }
 
     return turnover_map
-
-
-# ============================================================
-# Period utilities
-# ============================================================
-
-def slice_period(
-    series_or_frame: pd.Series | pd.DataFrame,
-    start_date: str,
-    end_date: str,
-) -> pd.Series | pd.DataFrame:
-    """
-    Slice a Series or DataFrame over a date range.
-
-    Parameters
-    ----------
-    series_or_frame:
-        Series or DataFrame indexed by date.
-    start_date:
-        Start date.
-    end_date:
-        End date.
-
-    Returns
-    -------
-    pd.Series | pd.DataFrame
-        Sliced object.
-    """
-    return series_or_frame.loc[
-        (series_or_frame.index >= start_date)
-        & (series_or_frame.index <= end_date)
-    ]
 
 
 def compute_period_summary(

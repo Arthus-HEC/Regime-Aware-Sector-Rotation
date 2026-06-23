@@ -130,6 +130,8 @@ Transaction costs: 5 basis points.
 | VTI Buy and Hold     |      730.20% | 10.60% |     15.31% |   0.74 |      -50.84% |             — |
 | SPY Buy and Hold     |      731.68% | 10.61% |     14.81% |   0.76 |      -50.78% |             — |
 
+> **Note on the Sharpe ratio:** All Sharpe ratios in this table are computed with a zero risk-free rate, which is a common simplification but overstates risk-adjusted performance over periods of elevated short rates (e.g. 2022–2025). See the [Sharpe over SHY](#sharpe-ratio-over-shy) section for a complementary measure that uses SHY as a practical cash-like benchmark.
+
 ---
 
 ## Out-of-Sample Validation
@@ -152,9 +154,9 @@ This split is used as a diagnostic robustness check rather than a fully independ
 | VTI Buy and Hold     | 14.25% |     15.59% |   0.94 |      -24.82% |
 | SPY Buy and Hold     | 14.72% |     15.08% |   0.99 |      -23.93% |
 
-The defensive sector extension performs particularly well out of sample. `Sector Top-2 SHY Net` achieves the highest CAGR and Sharpe ratio over 2016–2025, while maintaining a lower maximum drawdown than the equity benchmarks.
+An important observation: the in-sample ranking is not preserved out of sample. `Sector Top-1 Net` is the strongest strategy in the in-sample period by CAGR (13.27%), while `Sector Top-2 SHY Net` ranks last (8.94%). A genuine real-time selection would therefore have favored `Sector Top-1 Net`, which achieves only 9.01% CAGR out of sample — the weakest of all strategies.
 
-However, its in-sample performance is weaker than its out-of-sample performance. This suggests that the strategy should not be interpreted as a universally dominant allocation rule. Rather, it appears to be a promising sector-momentum extension whose performance is sensitive to the market environment.
+This ranking reversal is itself a meaningful result: it shows that in-sample performance is not a reliable predictor of out-of-sample ranking across these four strategies. The split should therefore be read as a diagnostic of instability, not as a validation of `Sector Top-2 SHY Net` specifically. The strong OOS performance of `Sector Top-2 SHY Net` is encouraging, but it cannot be cleanly separated from the fact that this strategy was already identified as the best on the full sample before the split was run.
 
 ## Sharpe Ratio over SHY
 
@@ -288,7 +290,6 @@ regime-aware-sector-rotation/
 ├── notebooks/
 │   ├── 01_haa_replication.ipynb
 │   └── 02_sector_rotation_extension.ipynb
-├── report/
 └── src/
     ├── common/
     │   ├── data.py
@@ -301,6 +302,8 @@ regime-aware-sector-rotation/
         ├── sector_rotation_topk.py
         ├── sector_rotation_top2_shy.py
         ├── compare_strategies.py
+        ├── oos_validation.py
+        ├── sharpe_over_shy.py
         ├── robustness_canary.py
         └── plot_robustness_canary.py
 ```

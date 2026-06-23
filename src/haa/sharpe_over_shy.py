@@ -35,7 +35,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.append(str(SRC_DIR))
 
 from common.data import load_prices, MONTHLY_PRICES_PATH
-from common.metrics import compute_simple_returns
+from common.metrics import compute_simple_returns, slice_period
 
 
 # ============================================================
@@ -171,20 +171,6 @@ def compute_sharpe_over_shy(
             "sharpe_over_shy": sharpe_over_shy,
         }
     )
-
-
-def slice_period(
-    series_or_frame: pd.Series | pd.DataFrame,
-    start_date: str,
-    end_date: str,
-) -> pd.Series | pd.DataFrame:
-    """
-    Slice a Series or DataFrame over a date range.
-    """
-    return series_or_frame.loc[
-        (series_or_frame.index >= start_date)
-        & (series_or_frame.index <= end_date)
-    ]
 
 
 def build_sharpe_over_shy_summary(

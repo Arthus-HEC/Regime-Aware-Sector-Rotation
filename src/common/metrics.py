@@ -550,6 +550,38 @@ def format_performance_summary(
 
 
 # ============================================================
+# Period slicing
+# ============================================================
+
+def slice_period(
+    series_or_frame: pd.Series | pd.DataFrame,
+    start_date: str,
+    end_date: str,
+) -> pd.Series | pd.DataFrame:
+    """
+    Slice a Series or DataFrame over a date range (inclusive).
+
+    Parameters
+    ----------
+    series_or_frame:
+        Series or DataFrame indexed by date.
+    start_date:
+        Start date (inclusive).
+    end_date:
+        End date (inclusive).
+
+    Returns
+    -------
+    pd.Series | pd.DataFrame
+        Sliced object.
+    """
+    return series_or_frame.loc[
+        (series_or_frame.index >= start_date)
+        & (series_or_frame.index <= end_date)
+    ]
+
+
+# ============================================================
 # Script entry point
 # ============================================================
 
